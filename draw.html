@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .control-div {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 300px;
+      padding: 10px;
+      border: 1px #666 solid;
+    }
+
+    .control-div .row {
+      display: flex;
+      margin-bottom: 15px;
+    }
+
+    .control-div .row span {
+      width: 50%;
+      text-align: right;
+    }
+
+    .control-div .row input {
+      width: 50%;
+    }
+
+    #btn {
+      width: 50%;
+      text-align: center;
+      margin: 0 auto;
+      background: #d42626;
+    }
+
+    #viewDiv {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      font-size: 30px;
+      overflow: hidden;
+    }
+
+    #viewDiv div {
+      width: 200px;
+      float: left;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="control-div">
+    <div class="row"><span>total(总数)：</span><input id="total" type="text"></div>
+    <div class="row"><span>once(一次抽几个)：</span><input id="once" type="text"></div>
+    <div class="row"><span id="btn" onclick="start()">GO!!!</span></div>
+  </div>
+  <div id="viewDiv">
+  </div>
+
+  <script>
+    document.onkeydown = function (event) {
+      var e = event || window.event || arguments.callee.caller.arguments[0];
+      if (e && e.keyCode == 32) { // 按空格 
+        start();
+      }
+    };
+
+    var arr1 = [];
+    var arr2 = [];
+    var timer = null;
+
+    function start() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        document.getElementById('btn').innerHTML = 'GO!!!';
+        return false;
+      }
+      document.getElementById('btn').innerHTML = 'STOP!!!';
+      var total = document.getElementById('total').value;
+      var once = document.getElementById('once').value;
+      if (!Number(total) || !Number(once)) {
+        alert('请填入人数和一次抽几个(输入值为数字)');
+        return false;
+      }
+      // 创建数组
+      arr1 = [];
+      for (var i = 0; i < total; i++) {
+        arr1.push(i + 1);
+      }
+      // 打乱数组
+      arr2 = [];
+      for (var j = 0; j < total; j++) {
+        var num = randomNum(arr1.length);
+        arr2.push(arr1[num]);
+        arr1.splice(num, 1);
+      }
+      goodLuck(Number(once));
+    }
+
+    // 抽奖
+    var frequency = 0;
+    var nowWhich = 0;
+
+    function goodLuck(num) {
+      frequency = Math.ceil(arr2.length / num);
+      nowWhich = 0;
+      timer = setInterval(() => {
+        var html = '';
+        for (var j = 0; j < num; j++) {
+          html += '<div>' + arr2[num * nowWhich + j] + '</div>';
+          document.getElementById('viewDiv').innerHTML = html;
+        }
+        nowWhich++;
+
+        if (nowWhich == (frequency - 1)) {
+          if (!!(arr2.length % num)) {
+            // 有余数问题 颠倒数组
+            let _arr = arr2.slice(num * nowWhich, arr2.length);
+            arr2.splice(num * nowWhich, arr2.length % num);
+            arr2 = _arr.concat(arr2);
+            clearInterval(timer);
+            goodLuck(num);
+          }
+        } else if (nowWhich == frequency) {
+          // 没有余数
+          clearInterval(timer);
+          goodLuck(num);
+        }
+        // console.log(arr2)
+        // console.log(html)
+      }, 1); // 调到最小  各浏览器最小间隙5~15ms
+    }
+
+    // 生成随机数
+    function randomNum(maxNum) {
+      return parseInt(Math.random() * maxNum);
+    } 
+  </script>
+</body>
+
+</html>
