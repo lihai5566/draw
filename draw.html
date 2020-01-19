@@ -19,6 +19,8 @@
       width: 300px;
       padding: 10px;
       border: 1px #666 solid;
+      background: #ffffff;
+      z-index: 999;
     }
 
     .control-div .row {
@@ -58,18 +60,31 @@
       text-align: center;
       margin-bottom: 10px;
     }
+    #winList{
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      max-width: 400px;
+    }
+    #jackpot{
+      opacity: .5;
+    }
   </style>
 </head>
 
 <body>
   <div class="control-div">
     <div class="row"><span>total(总数)：</span><input id="total" type="text"></div>
+    <div class="row"><span>level(几等奖): </span><input id="level" type="text"></div>
     <div class="row"><span>once(一次抽几个)：</span><input id="once" type="text"></div>
     <div class="row"><span id="btn" onclick="start()">GO!!!</span></div>
   </div>
   <div id="viewDiv">
   </div>
-
+  <div id="winList">
+  </div>
+  <div id="jackpot">
+  </div>
   <script>
     document.onkeydown = function (event) {
       var e = event || window.event || arguments.callee.caller.arguments[0];
@@ -78,15 +93,24 @@
       }
     };
 
-    var arr1 = [];
-    var arr2 = [];
+    var arr1 = []; // 原始数组
+    var arr2 = []; // 原始抽奖名单
     var timer = null;
 
     function start() {
+      var levelName = document.getElementById('level').value;
+      if(!levelName){
+        alert('请输入是几等奖');
+        return false;
+      }
       if (timer) {
         clearInterval(timer);
         timer = null;
         document.getElementById('btn').innerHTML = 'GO!!!';
+        setLocalStorage(levelName, nowArr);
+        printList();
+        deleteList();
+        jackPotList();
         return false;
       }
       document.getElementById('btn').innerHTML = 'STOP!!!';
@@ -108,22 +132,26 @@
         arr2.push(arr1[num]);
         arr1.splice(num, 1);
       }
+      deleteList();
       goodLuck(Number(once));
     }
 
     // 抽奖
     var frequency = 0;
     var nowWhich = 0;
+    var nowArr = [];
 
     function goodLuck(num) {
       frequency = Math.ceil(arr2.length / num);
       nowWhich = 0;
       timer = setInterval(() => {
         var html = '';
+        nowArr = [];
         for (var j = 0; j < num; j++) {
           html += '<div>' + arr2[num * nowWhich + j] + '</div>';
-          document.getElementById('viewDiv').innerHTML = html;
+          nowArr.push(arr2[num * nowWhich + j]);
         }
+        document.getElementById('viewDiv').innerHTML = html;
         nowWhich++;
 
         if (nowWhich == (frequency - 1)) {
@@ -149,6 +177,44 @@
     function randomNum(maxNum) {
       return parseInt(Math.random() * maxNum);
     } 
+    // 打印奖池名单
+    function jackPotList(){
+      var html1 = '抽奖名单：(' + arr2.length + '个)<br><p>';
+      arr2.forEach(item => {
+        html1 += item + ' ';
+      })
+      html1 = html1.substring(0, html1.length - 1) + '</p>';
+      document.getElementById('jackpot').innerHTML = html1;
+    }
+    // 打印抽奖名单
+    function printList() {
+      var list = JSON.parse(localStorage.getItem('luckDraw'));
+      var html1 = '';
+      for(i in list){
+        html1 += i + ':' + '<br>';
+        list[i].forEach((item, index) => {
+          html1 += item + ' ';
+        })
+        html1 = html1.substring(0, html1.length - 1) + '<br>';
+      }
+      document.getElementById('winList').innerHTML = html1;
+    }
+    // 剔除抽奖名单
+    function deleteList() {
+      var list = JSON.parse(localStorage.getItem('luckDraw'));
+      for(i in list){
+        list[i].forEach((item, index) => {
+          var num = arr2.indexOf(item);
+          arr2.splice(num, 1);
+        })
+      }
+    }
+    // 储存抽奖结果
+    function setLocalStorage(key, val) {
+      var stor = JSON.parse(localStorage.getItem('luckDraw')) || {};
+      stor[key] = val;
+      localStorage.setItem('luckDraw', JSON.stringify(stor));
+    }
   </script>
 </body>
 
