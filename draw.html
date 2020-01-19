@@ -52,6 +52,7 @@
       width: 400px;
       font-size: 30px;
       overflow: hidden;
+      z-index: 99;
     }
 
     #viewDiv div {
@@ -64,7 +65,7 @@
       position: absolute;
       right: 10px;
       bottom: 10px;
-      max-width: 400px;
+      max-width: 360px;
     }
     #jackpot{
       opacity: .5;
@@ -188,7 +189,7 @@
     }
     // 打印抽奖名单
     function printList() {
-      var list = JSON.parse(localStorage.getItem('luckDraw'));
+      var list = JSON.parse(localStorage.getItem('luckDraw')) || {};
       var html1 = '';
       for(i in list){
         html1 += i + ':' + '<br>';
@@ -201,18 +202,24 @@
     }
     // 剔除抽奖名单
     function deleteList() {
-      var list = JSON.parse(localStorage.getItem('luckDraw'));
+      var list = JSON.parse(localStorage.getItem('luckDraw')) || {};
       for(i in list){
         list[i].forEach((item, index) => {
           var num = arr2.indexOf(item);
-          arr2.splice(num, 1);
+          if(num >= 0){
+            arr2.splice(num, 1);
+          }
         })
       }
     }
     // 储存抽奖结果
     function setLocalStorage(key, val) {
       var stor = JSON.parse(localStorage.getItem('luckDraw')) || {};
-      stor[key] = val;
+      if(stor.hasOwnProperty(key)){
+        stor[key] = stor[key].concat(val);
+      }else{
+        stor[key] = val;
+      }
       localStorage.setItem('luckDraw', JSON.stringify(stor));
     }
   </script>
